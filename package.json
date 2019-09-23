@@ -1,32 +1,53 @@
 {
-  "name": "usurper-blueprints",
+  "name": "library-website-blueprints",
   "author": "Hesburgh Libraries - WSE <web-and-software-engineering-group@nd.edu>",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ndlib/usurper-blueprints.git"
+    "url": "https://github.com/ndlib/library-website-blueprints.git"
   },
+  "bugs": {
+    "url": "https://github.com/ndlib/library-website-blueprints/issues"
+  },
+  "homepage": "https://github.com/ndlib/library-website-blueprints#readme",
+  "keywords": [
+    "aws",
+    "cdk",
+    "ndlib"
+  ],
   "bin": {
     "deploy": "bin/deploy.js"
   },
   "scripts": {
+    "test": "jest --config jestconfig.json",
     "build": "tsc",
-    "watch": "tsc -w",
-    "test": "jest",
-    "cdk": "cdk"
+    "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
+    "lint": "tslint -p tsconfig.json",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test && npm run lint",
+    "preversion": "npm run lint",
+    "version": "npm run format && git add -A src",
+    "postversion": "git push && git push --tags",
+    "watch": "tsc-watch --onSuccess \"npm run test\""
   },
   "devDependencies": {
-    "@aws-cdk/assert": "^1.8.0",
     "@types/jest": "^24.0.18",
+    "aws-cdk": "^1.9.0",
     "jest": "^24.9.0",
-    "ts-jest": "^24.0.2",
-    "aws-cdk": "^1.8.0",
+    "prettier": "^1.18.2",
+    "ts-jest": "^24.1.0",
     "ts-node": "^8.1.0",
-    "typescript": "~3.6.2"
+    "tsc-watch": "^4.0.0",
+    "tslint": "^5.20.0",
+    "tslint-config-prettier": "^1.18.0",
+    "typescript": "^3.6.3"
   },
+  "files": [
+    "lib/**/*"
+  ],
   "dependencies": {
-    "@aws-cdk/core": "^1.8.0",
-    "source-map-support": "^0.5.9"
+    "@aws-cdk/assert": "^1.9.0",
+    "@aws-cdk/core": "^1.9.0"
   }
 }

@@ -1,7 +1,6 @@
 #!/usr/bin/env node
-import 'source-map-support/register';
 import cdk = require('@aws-cdk/core');
-import { UsurperStack } from '../lib/usurper-stack';
+import { UsurperStack } from '../src/usurper-stack';
 
 const app = new cdk.App();
 
