@@ -1,6 +1,10 @@
-# usurper-blueprints
+# library-website-blueprints
 ## Description
-Infrastructure-as-code for the library website and its related
+Infrastructure-as-code for the [Hesburgh Libraries website](https://library.nd.edu/)
+
+See related repos:
+
+  * [usurper](https://github.com/ndlib/usurper)
 
 ## Dependencies
 
@@ -16,7 +20,6 @@ Infrastructure-as-code for the library website and its related
 
 ## Deployment
 ```
-cd deploy
 cdk deploy
 ```
 
