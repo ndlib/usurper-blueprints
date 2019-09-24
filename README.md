@@ -1,10 +1,6 @@
-# library-website-blueprints
+# usurper-blueprints
 ## Description
-Infrastructure-as-code for the [Hesburgh Libraries website](https://library.nd.edu/)
-
-See related repos:
-
-  * [usurper](https://github.com/ndlib/usurper)
+Infrastructure-as-code for the [Hesburgh Libraries website](https://library.nd.edu/) ([usurper](https://github.com/ndlib/usurper))
 
 ## Dependencies
 
@@ -19,15 +15,16 @@ See related repos:
 `yarn test`
 
 ## Deployment
+Assume role (or use aws-vault) and run:
 ```
-cdk deploy
+cdk deploy usurper-pipeline -c owner=<netid> -c contact=<email>
 ```
 
 # Useful commands
 
- * `npm run build`   compile typescript to js
- * `npm run watch`   watch for changes and compile
- * `npm run test`    perform the jest unit tests
+ * `yarn build`   compile typescript to js
+ * `yarn watch`   watch for changes and compile
+ * `yarn test`    perform the jest unit tests
  * `cdk deploy`      deploy this stack to your default AWS account/region
  * `cdk diff`        compare deployed stack with current state
  * `cdk synth`       emits the synthesized CloudFormation template

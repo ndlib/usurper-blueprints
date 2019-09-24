@@ -1,16 +1,16 @@
 {
-  "name": "library-website-blueprints",
+  "name": "usurper-blueprints",
   "author": "Hesburgh Libraries - WSE <web-and-software-engineering-group@nd.edu> (https://library.nd.edu)",
   "version": "1.0.0",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ndlib/library-website-blueprints.git"
+    "url": "https://github.com/ndlib/usurper-blueprints.git"
   },
   "bugs": {
-    "url": "https://github.com/ndlib/library-website-blueprints/issues"
+    "url": "https://github.com/ndlib/usurper-blueprints/issues"
   },
-  "homepage": "https://github.com/ndlib/library-website-blueprints#readme",
+  "homepage": "https://github.com/ndlib/usurper-blueprints#readme",
   "keywords": [
     "aws",
     "cdk",

@@ -3,8 +3,8 @@
 ## Getting Started
 Requires Node.js >= 10.3.0
 ```shell
-git clone https://github.com/ndlib/library-website-blueprints.git
-cd library-website-blueprints
+git clone https://github.com/ndlib/usurper-blueprints.git
+cd usurper-blueprints
 npm install
 ```
 
