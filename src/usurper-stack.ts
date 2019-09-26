@@ -1,13 +1,18 @@
-import { execSync } from 'child_process'
-import cdk = require('@aws-cdk/core')
-import { Fn, RemovalPolicy, CfnOutput } from '@aws-cdk/core'
+import {
+  CloudFrontAllowedMethods,
+  CloudFrontWebDistribution,
+  HttpVersion,
+  PriceClass,
+  SecurityPolicyProtocol,
+  SSLMethod,
+  ViewerProtocolPolicy,
+} from '@aws-cdk/aws-cloudfront'
+import { AnyPrincipal, CanonicalUserPrincipal, Effect, PolicyStatement } from '@aws-cdk/aws-iam'
 import { Bucket, CfnBucket } from '@aws-cdk/aws-s3'
 import { BucketDeployment, Source } from '@aws-cdk/aws-s3-deployment'
-import { PolicyStatement, Effect, AnyPrincipal, CanonicalUserPrincipal } from '@aws-cdk/aws-iam'
-import {
-  CloudFrontWebDistribution, CloudFrontAllowedMethods, SecurityPolicyProtocol, SSLMethod,
-  HttpVersion, PriceClass, ViewerProtocolPolicy
-} from '@aws-cdk/aws-cloudfront'
+import cdk = require('@aws-cdk/core')
+import { CfnOutput, Fn, RemovalPolicy } from '@aws-cdk/core'
+import { execSync } from 'child_process'
 
 export class UsurperStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -31,29 +36,32 @@ export class UsurperStack extends cdk.Stack {
     }
 
     // Explicitly deny insecure requests
-    bucket.addToResourcePolicy(new PolicyStatement({
-      principals: [ new AnyPrincipal() ],
-      effect: Effect.DENY,
-      actions: ['s3:*'],
-      conditions: {
-        'Bool': { 'aws:SecureTransport': false }
-      },
-      resources: [bucket.bucketArn + '/*']
-    }))
+    bucket.addToResourcePolicy(
+      new PolicyStatement({
+        principals: [new AnyPrincipal()],
+        effect: Effect.DENY,
+        actions: ['s3:*'],
+        conditions: {
+          Bool: { 'aws:SecureTransport': false },
+        },
+        resources: [bucket.bucketArn + '/*'],
+      }),
+    )
     // Allow WSE canonical user read access to the bucket
-    bucket.addToResourcePolicy(new PolicyStatement({
-      principals: [ new CanonicalUserPrincipal(Fn.importValue('wse-web-canonical-user-id')) ],
-      effect: Effect.ALLOW,
-      actions: ['s3:GetObject'],
-      resources: [bucket.bucketArn + '/*']
-    }))
+    bucket.addToResourcePolicy(
+      new PolicyStatement({
+        principals: [new CanonicalUserPrincipal(Fn.importValue('wse-web-canonical-user-id'))],
+        effect: Effect.ALLOW,
+        actions: ['s3:GetObject'],
+        resources: [bucket.bucketArn + '/*'],
+      }),
+    )
 
     // NOTE: If you deploy directly from blueprints, it will use whatever build happens to be sitting at the build path.
     // It will NOT be rebuilt. To build and deploy, use usurper/scripts/codebuild/local.sh
+    // tslint:disable-next-line:no-unused-expression
     new BucketDeployment(this, 'DeployWebsite', {
-      sources: [
-        Source.asset(this.node.tryGetContext('usurperBuildPath') || '../usurper/build'),
-      ],
+      sources: [Source.asset(this.node.tryGetContext('usurperBuildPath') || '../usurper/build')],
       destinationBucket: bucket,
     })
 
@@ -102,7 +110,7 @@ export class UsurperStack extends cdk.Stack {
           errorCachingMinTtl: 86400,
           responseCode: 200,
           responsePagePath: '/index.html',
-        }
+        },
       ],
       viewerProtocolPolicy: certArn ? ViewerProtocolPolicy.REDIRECT_TO_HTTPS : ViewerProtocolPolicy.ALLOW_ALL,
       loggingConfig: {
@@ -112,19 +120,23 @@ export class UsurperStack extends cdk.Stack {
       },
     })
 
+    // tslint:disable-next-line:no-unused-expression
     new CfnOutput(this, 'WebsiteCNAME', {
       value: cloudFront.domainName,
       description: 'Website CNAME target',
     })
 
+    // tslint:disable-next-line:no-unused-expression
     new CfnOutput(this, 'WebsiteBucketName', {
       value: bucket.bucketName,
       description: 'Name of S3 bucket to hold website content',
     })
   }
 
-  getCertificateArn (domain: string): string {
-    const result = execSync(`aws acm list-certificates --certificate-statuses ISSUED --includes extendedKeyUsage=TLS_WEB_SERVER_AUTHENTICATION --query "CertificateSummaryList[?DomainName=='${domain}']|[0]"`).toString()
+  public getCertificateArn(domain: string): string {
+    const result = execSync(
+      `aws acm list-certificates --certificate-statuses ISSUED --includes extendedKeyUsage=TLS_WEB_SERVER_AUTHENTICATION --query "CertificateSummaryList[?DomainName=='${domain}']|[0]"`,
+    ).toString()
     const json = JSON.parse(result) || {}
     return json.CertificateArn
   }

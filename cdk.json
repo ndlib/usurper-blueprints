@@ -2,7 +2,7 @@
   "app": "npx ts-node bin/deploy.ts",
   "context": {
     "projectName": "usurper-blueprints",
-    "description": "Infrastructure for library website and related services.",
+    "description": "Infrastructure for Hesburgh Libraries website.",
     "gitTokenPath": "/all/github/ndlib-git",
     "gitOwner": "ndlib",
     "usurperRepository": "usurper",

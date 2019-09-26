@@ -22,8 +22,8 @@ npm run watch
 ## Pull Requests
 Before submitting a PR, make sure to run all of the following:
 ```shell
-npm run build
-npm test
-npm run lint
-npm run format
+yarn build
+yarn test
+yarn lint
+yarn format
 ```
