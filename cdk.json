@@ -9,6 +9,9 @@
     "usurperBranch": "master",
     "blueprintsRepository": "usurper-blueprints",
     "blueprintsBranch": "master",
-    "domainStackName": "libraries-domain"
+    "domainStackName": "libraries-domain",
+    "sentryTokenPath": "/all/sentry/ci-token",
+    "sentryOrg": "university-of-notre-dame-ts",
+    "sentryProject": "usurper"
   }
 }
