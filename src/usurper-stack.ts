@@ -8,20 +8,26 @@ import {
   ViewerProtocolPolicy,
 } from '@aws-cdk/aws-cloudfront'
 import { AnyPrincipal, CanonicalUserPrincipal, Effect, PolicyStatement } from '@aws-cdk/aws-iam'
+import { CnameRecord, HostedZone } from '@aws-cdk/aws-route53'
 import { Bucket, CfnBucket } from '@aws-cdk/aws-s3'
 import { BucketDeployment, Source } from '@aws-cdk/aws-s3-deployment'
 import cdk = require('@aws-cdk/core')
-import { CfnOutput, Fn, RemovalPolicy } from '@aws-cdk/core'
-import { execSync } from 'child_process'
+import { CfnOutput, Duration, Fn, RemovalPolicy } from '@aws-cdk/core'
+
+export interface IUsurperStackProps extends cdk.StackProps {
+  readonly buildPath: string
+  readonly createDns: boolean
+  readonly domainStackName: string
+  readonly hostnamePrefix: string
+  readonly stage: string
+}
 
 export class UsurperStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: cdk.Construct, id: string, props: IUsurperStackProps) {
     super(scope, id, props)
 
-    // Pre-deploy, get ACM certificate
-    const stage = this.node.tryGetContext('stage') || 'dev'
-    const fqdn = `usurper-${stage}.library.nd.edu`
-    const certArn = this.getCertificateArn(fqdn) || this.getCertificateArn('*.library.nd.edu')
+    const domainNameImport = Fn.importValue(`${props.domainStackName}:DomainName`)
+    const fqdn = `${props.hostnamePrefix}.${domainNameImport}`
 
     // Set up s3 bucket for storing the packaged site
     const bucket = new Bucket(this, 'UsurperBucket', {
@@ -61,7 +67,7 @@ export class UsurperStack extends cdk.Stack {
     // It will NOT be rebuilt. To build and deploy, use usurper/scripts/codebuild/local.sh
     // tslint:disable-next-line:no-unused-expression
     new BucketDeployment(this, 'DeployWebsite', {
-      sources: [Source.asset(this.node.tryGetContext('usurperBuildPath') || '../usurper/build')],
+      sources: [Source.asset(props.buildPath)],
       destinationBucket: bucket,
     })
 
@@ -89,10 +95,10 @@ export class UsurperStack extends cdk.Stack {
       priceClass: PriceClass.PRICE_CLASS_100,
       comment: fqdn,
       aliasConfiguration: {
-        acmCertRef: certArn,
+        acmCertRef: Fn.importValue(`${props.domainStackName}:ACMCertificateARN`),
         names: [
           fqdn,
-          // `${stage}.library.nd.edu`, <-- This will be added manually by ESU when cutting over to CI (?)
+          // `${props.stage}.library.nd.edu`, <-- This will be added manually by ESU when cutting over to CI (?)
         ],
         securityPolicy: SecurityPolicyProtocol.TLS_V1_1_2016,
         sslMethod: SSLMethod.SNI,
@@ -112,13 +118,27 @@ export class UsurperStack extends cdk.Stack {
           responsePagePath: '/index.html',
         },
       ],
-      viewerProtocolPolicy: certArn ? ViewerProtocolPolicy.REDIRECT_TO_HTTPS : ViewerProtocolPolicy.ALLOW_ALL,
+      viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       loggingConfig: {
         bucket: Bucket.fromBucketName(this, 'CloudFrontLogBucket', Fn.importValue('wse-web-logs')),
         includeCookies: true,
         prefix: `web/${fqdn || 'unknown'}`,
       },
     })
+
+    // Create DNS record (conditionally)
+    if (props.createDns) {
+      // tslint:disable-next-line:no-unused-expression
+      new CnameRecord(this, 'ServiceCNAME', {
+        recordName: props.hostnamePrefix,
+        domainName: cloudFront.domainName,
+        zone: HostedZone.fromHostedZoneAttributes(this, 'ImportedHostedZone', {
+          hostedZoneId: Fn.importValue(`${props.domainStackName}:Zone`),
+          zoneName: domainNameImport,
+        }),
+        ttl: Duration.minutes(15),
+      })
+    }
 
     // tslint:disable-next-line:no-unused-expression
     new CfnOutput(this, 'WebsiteCNAME', {
@@ -131,13 +151,5 @@ export class UsurperStack extends cdk.Stack {
       value: bucket.bucketName,
       description: 'Name of S3 bucket to hold website content',
     })
-  }
-
-  public getCertificateArn(domain: string): string {
-    const result = execSync(
-      `aws acm list-certificates --certificate-statuses ISSUED --includes extendedKeyUsage=TLS_WEB_SERVER_AUTHENTICATION --query "CertificateSummaryList[?DomainName=='${domain}']|[0]"`,
-    ).toString()
-    const json = JSON.parse(result) || {}
-    return json.CertificateArn
   }
 }

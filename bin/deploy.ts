@@ -10,5 +10,10 @@ const stage = app.node.tryGetContext('stage') || 'dev'
 
 // tslint:disable-next-line:no-unused-expression
 new UsurperStack(app, 'AppStack', {
-  stackName: `usurper-${stage}`,
+  stackName: app.node.tryGetContext('serviceStackName') || `usurper-${stage}`,
+  buildPath: app.node.tryGetContext('usurperBuildPath') || '../usurper/build',
+  createDns: app.node.tryGetContext('createDns') === undefined ? true : app.node.tryGetContext('createDns') === 'true',
+  domainStackName: app.node.tryGetContext('domainStackName') || 'libraries-domain',
+  hostnamePrefix: app.node.tryGetContext('hostnamePrefix') || `usurper-${stage}`,
+  stage,
 })

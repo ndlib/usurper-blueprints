@@ -8,6 +8,7 @@
     "usurperRepository": "usurper",
     "usurperBranch": "master",
     "blueprintsRepository": "usurper-blueprints",
-    "blueprintsBranch": "master"
+    "blueprintsBranch": "master",
+    "domainStackName": "libraries-domain"
   }
 }
