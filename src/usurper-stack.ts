@@ -63,14 +63,6 @@ export class UsurperStack extends cdk.Stack {
       }),
     )
 
-    // NOTE: If you deploy directly from blueprints, it will use whatever build happens to be sitting at the build path.
-    // It will NOT be rebuilt. To build and deploy, use usurper/scripts/codebuild/local.sh
-    // tslint:disable-next-line:no-unused-expression
-    new BucketDeployment(this, 'DeployWebsite', {
-      sources: [Source.asset(props.buildPath)],
-      destinationBucket: bucket,
-    })
-
     // CloudFront for website
     const cloudFront = new CloudFrontWebDistribution(this, 'UsurperCloudFront', {
       originConfigs: [
@@ -150,6 +142,15 @@ export class UsurperStack extends cdk.Stack {
     new CfnOutput(this, 'WebsiteBucketName', {
       value: bucket.bucketName,
       description: 'Name of S3 bucket to hold website content',
+    })
+
+    // NOTE: If you deploy directly from blueprints, it will use whatever build happens to be sitting at the build path.
+    // It will NOT be rebuilt. To build and deploy, use usurper/scripts/codebuild/local.sh
+    // tslint:disable-next-line:no-unused-expression
+    new BucketDeployment(this, 'DeployWebsite', {
+      sources: [Source.asset(props.buildPath)],
+      destinationBucket: bucket,
+      distribution: cloudFront,
     })
   }
 }
