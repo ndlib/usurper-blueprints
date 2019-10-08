@@ -9,8 +9,9 @@ import { AnyPrincipal, Effect, PolicyStatement, Role, ServicePrincipal } from '@
 import { Bucket } from '@aws-cdk/aws-s3'
 import sns = require('@aws-cdk/aws-sns')
 import cdk = require('@aws-cdk/core')
-import { Fn, RemovalPolicy, SecretValue } from '@aws-cdk/core'
+import { RemovalPolicy, SecretValue } from '@aws-cdk/core'
 import UsurperBuildProject from './usurper-build-project'
+import UsurperBuildRole from './usurper-build-role'
 
 export interface IUsurperPipelineStackProps extends cdk.StackProps {
   readonly gitOwner: string
@@ -50,105 +51,10 @@ export class UsurperPipelineStack extends cdk.Stack {
     const codepipelineRole = new Role(this, 'CodePipelineRole', {
       assumedBy: new ServicePrincipal('codepipeline.amazonaws.com'),
     })
-    const codebuildRole = new Role(this, 'CodeBuildTrustRole', {
+    const codebuildRole = new UsurperBuildRole(this, 'CodeBuildTrustRole', {
       assumedBy: new ServicePrincipal('codebuild.amazonaws.com'),
+      artifactBucket,
     })
-    // Allow checking what policies are attached to this role
-    codebuildRole.addToPolicy(
-      new PolicyStatement({
-        resources: [codebuildRole.roleArn],
-        actions: ['iam:GetRolePolicy'],
-      }),
-    )
-    // Allow modifying IAM roles related to our application
-    codebuildRole.addToPolicy(
-      new PolicyStatement({
-        resources: [Fn.sub('arn:aws:iam::${AWS::AccountId}:role/' + this.stackName + '-*')],
-        actions: [
-          'iam:GetRole',
-          'iam:CreateRole',
-          'iam:DeleteRole',
-          'iam:DeleteRolePolicy',
-          'iam:AttachRolePolicy',
-          'iam:DetachRolePolicy',
-          'iam:PutRolePolicy',
-          'iam:PassRole',
-        ],
-      }),
-    )
-    // Allow logging
-    codebuildRole.addToPolicy(
-      new PolicyStatement({
-        resources: [
-          Fn.sub('arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${AWS::StackName}-*'),
-        ],
-        actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
-      }),
-    )
-    // Allow storing artifacts in S3 buckets
-    codebuildRole.addToPolicy(
-      new PolicyStatement({
-        resources: [artifactBucket.bucketArn],
-        actions: ['s3:ListBucket', 's3:GetObject', 's3:PutObject'],
-      }),
-    )
-    // Allow fetching details about and updating the application stack
-    codebuildRole.addToPolicy(
-      new PolicyStatement({
-        resources: [Fn.sub('arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/' + this.stackName + '-*/*')],
-        actions: [
-          'cloudformation:DescribeStacks',
-          'cloudformation:DescribeStackEvents',
-          'cloudformation:DescribeChangeSet',
-          'cloudformation:CreateChangeSet',
-          'cloudformation:ExecuteChangeSet',
-          'cloudformation:DeleteChangeSet',
-          'cloudformation:DeleteStack',
-          'cloudformation:GetTemplate',
-        ],
-      }),
-    )
-    // Allow reading some details about CDKToolkit stack so we can use the CDK CLI successfully from CodeBuild.
-    codebuildRole.addToPolicy(
-      new PolicyStatement({
-        resources: [Fn.sub('arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/CDKToolkit/*')],
-        actions: ['cloudformation:DescribeStacks'],
-      }),
-    )
-    // Allow reading exports to get urls for other related services
-    codebuildRole.addToPolicy(
-      new PolicyStatement({
-        resources: ['*'],
-        actions: ['cloudformation:ListExports'],
-      }),
-    )
-    // Allow creating and modifying cloudfront
-    codebuildRole.addToPolicy(
-      new PolicyStatement({
-        resources: ['*'],
-        actions: [
-          'cloudfront:GetDistribution',
-          'cloudfront:CreateDistribution',
-          'cloudfront:UpdateDistribution',
-          'cloudfront:TagResource',
-          'cloudfront:CreateInvalidation',
-        ],
-      }),
-    )
-    // Allow getting parameters for usurper in parameter store
-    codebuildRole.addToPolicy(
-      new PolicyStatement({
-        resources: [
-          // TODO: Remove dev and move prep to the prep version of the pipeline
-          Fn.sub('arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/all/usurper/dev/*'),
-          Fn.sub('arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/all/usurper/prep/*'),
-          Fn.sub('arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/all/usurper/test/*'),
-          Fn.sub('arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/all/usurper/prod/*'),
-          Fn.sub('arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/all/sentry/*'),
-        ],
-        actions: ['ssm:GetParameter', 'ssm:GetParameters'],
-      }),
-    )
 
     // CREATE PIPELINE
     const pipeline = new codepipeline.Pipeline(this, 'UsurperPipeline', {
