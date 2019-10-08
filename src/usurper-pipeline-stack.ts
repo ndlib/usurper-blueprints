@@ -5,11 +5,11 @@ import {
   GitHubTrigger,
   ManualApprovalAction,
 } from '@aws-cdk/aws-codepipeline-actions'
-import { AnyPrincipal, Effect, PolicyStatement, Role, ServicePrincipal } from '@aws-cdk/aws-iam'
-import { Bucket } from '@aws-cdk/aws-s3'
+import { Role, ServicePrincipal } from '@aws-cdk/aws-iam'
 import sns = require('@aws-cdk/aws-sns')
 import cdk = require('@aws-cdk/core')
-import { RemovalPolicy, SecretValue } from '@aws-cdk/core'
+import { SecretValue } from '@aws-cdk/core'
+import ArtifactBucket from './artifact-bucket'
 import UsurperBuildProject from './usurper-build-project'
 import UsurperBuildRole from './usurper-build-role'
 
@@ -25,6 +25,8 @@ export interface IUsurperPipelineStackProps extends cdk.StackProps {
   readonly sentryTokenPath: string
   readonly sentryOrg: string
   readonly sentryProject: string
+  readonly createDns: boolean
+  readonly domainStackName: string
 }
 
 export class UsurperPipelineStack extends cdk.Stack {
@@ -32,20 +34,7 @@ export class UsurperPipelineStack extends cdk.Stack {
     super(scope, id, props)
 
     // S3 BUCKET FOR STORING ARTIFACTS
-    const artifactBucket = new Bucket(this, 'ArtifactBucket', {
-      removalPolicy: RemovalPolicy.DESTROY,
-    })
-    artifactBucket.addToResourcePolicy(
-      new PolicyStatement({
-        principals: [new AnyPrincipal()],
-        effect: Effect.DENY,
-        actions: ['s3:*'],
-        conditions: {
-          Bool: { 'aws:SecureTransport': false },
-        },
-        resources: [artifactBucket.bucketArn + '/*'],
-      }),
-    )
+    const artifactBucket = new ArtifactBucket(this, 'ArtifactBucket', {})
 
     // IAM ROLES
     const codepipelineRole = new Role(this, 'CodePipelineRole', {

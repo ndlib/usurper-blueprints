@@ -22,18 +22,22 @@ const app = new cdk.App({
 app.node.applyAspect(new StackTags())
 
 const stage = app.node.tryGetContext('stage') || 'dev'
+const sharedProps = {
+  createDns: app.node.tryGetContext('createDns') === undefined ? true : app.node.tryGetContext('createDns') === 'true',
+  domainStackName: app.node.tryGetContext('domainStackName') || 'libraries-domain',
+}
 
 // tslint:disable-next-line:no-unused-expression
 new UsurperStack(app, 'AppStack', {
+  ...sharedProps,
   stackName: app.node.tryGetContext('serviceStackName') || `usurper-${stage}`,
   buildPath: app.node.tryGetContext('usurperBuildPath') || '../usurper/build',
-  createDns: app.node.tryGetContext('createDns') === undefined ? true : app.node.tryGetContext('createDns') === 'true',
-  domainStackName: app.node.tryGetContext('domainStackName') || 'libraries-domain',
-  hostnamePrefix: app.node.tryGetContext('hostnamePrefix') || `usurper-${stage}`,
   stage,
+  hostnamePrefix: app.node.tryGetContext('hostnamePrefix') || `usurper-${stage}`,
 })
 // tslint:disable-next-line:no-unused-expression
 new UsurperPipelineStack(app, 'PipelineStack', {
+  ...sharedProps,
   stackName: app.node.tryGetContext('pipelineStackName') || `usurper-pipeline`,
   gitOwner: app.node.tryGetContext('gitOwner'),
   gitTokenPath: app.node.tryGetContext('gitTokenPath'),

@@ -10,16 +10,19 @@ export interface IUsurperBuildProjectProps extends codebuild.PipelineProjectProp
   readonly sentryTokenPath: string
   readonly sentryOrg: string
   readonly sentryProject: string
+  readonly createDns: boolean
+  readonly domainStackName: string
 }
 
 export class UsurperBuildProject extends codebuild.PipelineProject {
   constructor(scope: cdk.Construct, id: string, props: IUsurperBuildProjectProps) {
+    const serviceStackName = `${scope.node.tryGetContext('serviceStackName') || 'usurper'}-${props.stage}`
     const pipelineProps = {
       environment: {
         buildImage: codebuild.LinuxBuildImage.STANDARD_2_0,
         environmentVariables: {
           STACK_NAME: {
-            value: scope.node.tryGetContext('serviceStackName') || `usurper-${props.stage}`,
+            value: serviceStackName,
             type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
           },
           CI: {
@@ -50,6 +53,18 @@ export class UsurperBuildProject extends codebuild.PipelineProject {
             value: props.sentryProject,
             type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
           },
+          CREATE_DNS: {
+            value: props.createDns.toString(),
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+          },
+          DOMAIN_STACK_NAME: {
+            value: props.domainStackName,
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+          },
+          HOSTNAME_PREFIX: {
+            value: scope.node.tryGetContext('hostnamePrefix') || serviceStackName,
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+          },
         },
       },
       role: props.role,
@@ -65,7 +80,6 @@ export class UsurperBuildProject extends codebuild.PipelineProject {
               'chmod -R 755 ./scripts/codebuild/*',
               'export BLUEPRINTS_DIR="$CODEBUILD_SRC_DIR_InfraCode"',
               './scripts/codebuild/install.sh',
-              'yarn add @sentry/cli',
             ],
           },
           pre_build: {

@@ -11,6 +11,8 @@ export class UsurperBuildRole extends Role {
   constructor(scope: cdk.Construct, id: string, props: IUsurperBuildRoleProps) {
     super(scope, id, props)
 
+    const serviceStackPrefix = scope.node.tryGetContext('serviceStackName') || 'usurper'
+
     // Allow checking what policies are attached to this role
     this.addToPolicy(
       new PolicyStatement({
@@ -21,7 +23,7 @@ export class UsurperBuildRole extends Role {
     // Allow modifying IAM roles related to our application
     this.addToPolicy(
       new PolicyStatement({
-        resources: [Fn.sub('arn:aws:iam::${AWS::AccountId}:role/${AWS::StackName}-*')],
+        resources: [Fn.sub('arn:aws:iam::${AWS::AccountId}:role/' + serviceStackPrefix + '-*')],
         actions: [
           'iam:GetRole',
           'iam:CreateRole',
@@ -46,14 +48,16 @@ export class UsurperBuildRole extends Role {
     // Allow storing artifacts in S3 buckets
     this.addToPolicy(
       new PolicyStatement({
-        resources: [props.artifactBucket.bucketArn],
+        resources: [props.artifactBucket.bucketArn, 'arn:aws:s3:::cdktoolkit-stagingbucket-*'],
         actions: ['s3:ListBucket', 's3:GetObject', 's3:PutObject'],
       }),
     )
     // Allow fetching details about and updating the application stack
     this.addToPolicy(
       new PolicyStatement({
-        resources: [Fn.sub('arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${AWS::StackName}-*/*')],
+        resources: [
+          Fn.sub('arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/' + serviceStackPrefix + '-*/*'),
+        ],
         actions: [
           'cloudformation:DescribeStacks',
           'cloudformation:DescribeStackEvents',
