@@ -1,28 +1,23 @@
 #!/usr/bin/env node
 import cdk = require('@aws-cdk/core')
+import { StackTags } from '@ndlib/ndlib-cdk'
 import { execSync } from 'child_process'
-import { StackTags } from 'ndlib-cdk'
 import { UsurperPipelineStack } from '../src/usurper-pipeline-stack'
 import { UsurperStack } from '../src/usurper-stack'
 
-const app = new cdk.App()
-
-if (!app.node.tryGetContext('owner')) {
-  app.node.setContext(
-    'owner',
-    execSync('id -un')
+// The context values here are defaults only. Passing context in cli will override these
+// Normally, you want to set constant defaults in cdk.json, but these are dynamic based on the executing user.
+const app = new cdk.App({
+  context: {
+    owner: execSync('id -un')
       .toString()
       .trim(),
-  )
-}
-if (!app.node.tryGetContext('contact')) {
-  app.node.setContext(
-    'contact',
-    execSync('id -un')
-      .toString()
-      .trim() + '@nd.edu',
-  )
-}
+    contact:
+      execSync('id -un')
+        .toString()
+        .trim() + '@nd.edu',
+  },
+})
 
 app.node.applyAspect(new StackTags())
 

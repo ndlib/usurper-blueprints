@@ -33,9 +33,10 @@
     "watch": "tsc-watch --onSuccess \"npm run test\""
   },
   "devDependencies": {
-    "@aws-cdk/assert": "^1.9.0",
+    "@aws-cdk/assert": "^1.12.0",
     "@types/jest": "^24.0.18",
-    "aws-cdk": "^1.9.0",
+    "@types/node": "^12.7.11",
+    "aws-cdk": "^1.12.0",
     "jest": "^24.9.0",
     "prettier": "^1.18.2",
     "ts-jest": "^24.1.0",
@@ -49,17 +50,17 @@
     "lib/**/*"
   ],
   "dependencies": {
-    "@aws-cdk/aws-certificatemanager": "^1.9.0",
-    "@aws-cdk/aws-cloudfront": "^1.9.0",
-    "@aws-cdk/aws-codebuild": "^1.9.0",
-    "@aws-cdk/aws-codepipeline": "^1.9.0",
-    "@aws-cdk/aws-codepipeline-actions": "^1.9.0",
-    "@aws-cdk/aws-iam": "^1.9.0",
-    "@aws-cdk/aws-route53": "^1.9.0",
-    "@aws-cdk/aws-s3": "^1.9.0",
-    "@aws-cdk/aws-s3-deployment": "^1.9.0",
-    "@aws-cdk/aws-sns": "^1.9.0",
-    "@aws-cdk/core": "^1.9.0",
-    "ndlib-cdk": "^1.0.2"
+    "@aws-cdk/aws-certificatemanager": "^1.12.0",
+    "@aws-cdk/aws-cloudfront": "^1.12.0",
+    "@aws-cdk/aws-codebuild": "^1.12.0",
+    "@aws-cdk/aws-codepipeline": "^1.12.0",
+    "@aws-cdk/aws-codepipeline-actions": "^1.12.0",
+    "@aws-cdk/aws-iam": "^1.12.0",
+    "@aws-cdk/aws-route53": "^1.12.0",
+    "@aws-cdk/aws-s3": "^1.12.0",
+    "@aws-cdk/aws-s3-deployment": "1.11.0",
+    "@aws-cdk/aws-sns": "^1.12.0",
+    "@aws-cdk/core": "^1.12.0",
+    "@ndlib/ndlib-cdk": "^1.0.3"
   }
 }
