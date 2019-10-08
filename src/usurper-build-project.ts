@@ -14,14 +14,12 @@ export interface IUsurperBuildProjectProps extends codebuild.PipelineProjectProp
 
 export class UsurperBuildProject extends codebuild.PipelineProject {
   constructor(scope: cdk.Construct, id: string, props: IUsurperBuildProjectProps) {
-    super(scope, id, props)
-
-    return new codebuild.PipelineProject(this, id, {
+    const pipelineProps = {
       environment: {
         buildImage: codebuild.LinuxBuildImage.STANDARD_2_0,
         environmentVariables: {
           STACK_NAME: {
-            value: this.node.tryGetContext('serviceStackName') || `usurper-${props.stage}`,
+            value: scope.node.tryGetContext('serviceStackName') || `usurper-${props.stage}`,
             type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
           },
           CI: {
@@ -84,7 +82,8 @@ export class UsurperBuildProject extends codebuild.PipelineProject {
           files: ['build/**/*'],
         },
       }),
-    })
+    }
+    super(scope, id, pipelineProps)
   }
 }
 
