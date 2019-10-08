@@ -20,6 +20,10 @@ export class UsurperBuildProject extends codebuild.PipelineProject {
       environment: {
         buildImage: codebuild.LinuxBuildImage.STANDARD_2_0,
         environmentVariables: {
+          STACK_NAME: {
+            value: this.node.tryGetContext('serviceStackName') || `usurper-${props.stage}`,
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+          },
           CI: {
             value: 'true',
             type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
