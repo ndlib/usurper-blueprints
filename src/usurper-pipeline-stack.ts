@@ -43,6 +43,8 @@ export class UsurperPipelineStack extends cdk.Stack {
     const codebuildRole = new UsurperBuildRole(this, 'CodeBuildTrustRole', {
       assumedBy: new ServicePrincipal('codebuild.amazonaws.com'),
       artifactBucket,
+      createDns: props.createDns,
+      domainStackName: props.domainStackName,
     })
 
     // CREATE PIPELINE
