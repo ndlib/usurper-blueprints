@@ -15,6 +15,7 @@ export class UsurperBuildRole extends Role {
     super(scope, id, props)
 
     const serviceStackPrefix = scope.node.tryGetContext('serviceStackName') || 'usurper'
+    const serviceStacks = props.stages.map(stage => `${serviceStackPrefix}-${stage}`)
 
     // Allow checking what policies are attached to this role
     this.addToPolicy(
@@ -24,23 +25,26 @@ export class UsurperBuildRole extends Role {
       }),
     )
     // Allow modifying IAM roles related to our application
-    this.addToPolicy(
-      new PolicyStatement({
-        resources: [Fn.sub('arn:aws:iam::${AWS::AccountId}:role/' + serviceStackPrefix + '-*')],
-        actions: [
-          'iam:GetRole',
-          'iam:GetRolePolicy',
-          'iam:CreateRole',
-          'iam:DeleteRole',
-          'iam:DeleteRolePolicy',
-          'iam:AttachRolePolicy',
-          'iam:DetachRolePolicy',
-          'iam:PutRolePolicy',
-          'iam:PassRole',
-          'iam:TagRole',
-        ],
-      }),
-    )
+    const iamStatement = new PolicyStatement({
+      resources: [], // Added later dynamically
+      actions: [
+        'iam:GetRole',
+        'iam:GetRolePolicy',
+        'iam:CreateRole',
+        'iam:DeleteRole',
+        'iam:DeleteRolePolicy',
+        'iam:AttachRolePolicy',
+        'iam:DetachRolePolicy',
+        'iam:PutRolePolicy',
+        'iam:PassRole',
+        'iam:TagRole',
+      ],
+    })
+    serviceStacks.forEach(stackName => {
+      iamStatement.addResources(Fn.sub('arn:aws:iam::${AWS::AccountId}:role/' + stackName + '*'))
+    })
+    this.addToPolicy(iamStatement)
+
     // Allow logging
     this.addToPolicy(
       new PolicyStatement({
@@ -89,11 +93,9 @@ export class UsurperBuildRole extends Role {
       resources: [], // Added later dynamically
       actions: ['s3:GetObject*', 's3:DeleteObject*', 's3:PutObject*', 's3:Abort*', 's3:ReplicateTags'],
     })
-    props.stages.forEach(stage => {
-      s3bucketStatement.addResources(Fn.sub('arn:aws:s3:::' + serviceStackPrefix + '-' + stage + '-${AWS::AccountId}'))
-      s3objectsStatement.addResources(
-        Fn.sub('arn:aws:s3:::' + serviceStackPrefix + '-' + stage + '-${AWS::AccountId}/*'),
-      )
+    serviceStacks.forEach(stackName => {
+      s3bucketStatement.addResources(Fn.sub('arn:aws:s3:::' + stackName + '-${AWS::AccountId}'))
+      s3objectsStatement.addResources(Fn.sub('arn:aws:s3:::' + stackName + '-${AWS::AccountId}/*'))
     })
     this.addToPolicy(s3bucketStatement)
     this.addToPolicy(s3objectsStatement)
@@ -112,30 +114,38 @@ export class UsurperBuildRole extends Role {
       }),
     )
     // Allow creating and managing lambda with this stack name (needed for BucketDeployment construct)
-    this.addToPolicy(
-      new PolicyStatement({
-        resources: [Fn.sub('arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:' + serviceStackPrefix + '-*')],
-        actions: ['lambda:*'],
-      }),
-    )
+    const lambdaStatement = new PolicyStatement({
+      resources: [], // Added later dynamically
+      actions: ['lambda:*'],
+    })
+    serviceStacks.forEach(stackName => {
+      lambdaStatement.addResources(
+        Fn.sub('arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:' + stackName + '*'),
+      )
+    })
+    this.addToPolicy(lambdaStatement)
+
     // Allow fetching details about and updating the application stack
-    this.addToPolicy(
-      new PolicyStatement({
-        resources: [
-          Fn.sub('arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/' + serviceStackPrefix + '-*/*'),
-        ],
-        actions: [
-          'cloudformation:DescribeStacks',
-          'cloudformation:DescribeStackEvents',
-          'cloudformation:DescribeChangeSet',
-          'cloudformation:CreateChangeSet',
-          'cloudformation:ExecuteChangeSet',
-          'cloudformation:DeleteChangeSet',
-          'cloudformation:DeleteStack',
-          'cloudformation:GetTemplate',
-        ],
-      }),
-    )
+    const cfnStatement = new PolicyStatement({
+      resources: [], // Added later dynamically
+      actions: [
+        'cloudformation:DescribeStacks',
+        'cloudformation:DescribeStackEvents',
+        'cloudformation:DescribeChangeSet',
+        'cloudformation:CreateChangeSet',
+        'cloudformation:ExecuteChangeSet',
+        'cloudformation:DeleteChangeSet',
+        'cloudformation:DeleteStack',
+        'cloudformation:GetTemplate',
+      ],
+    })
+    serviceStacks.forEach(stackName => {
+      cfnStatement.addResources(
+        Fn.sub('arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/' + stackName + '/*'),
+      )
+    })
+    this.addToPolicy(cfnStatement)
+
     // Allow reading some details about CDKToolkit stack so we can use the CDK CLI successfully from CodeBuild.
     this.addToPolicy(
       new PolicyStatement({
