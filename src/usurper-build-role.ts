@@ -45,13 +45,23 @@ export class UsurperBuildRole extends Role {
     })
     this.addToPolicy(iamStatement)
 
-    // Allow logging
+    // Global resource permissions for managing cloudfront and logs
     this.addToPolicy(
       new PolicyStatement({
         resources: ['*'],
-        actions: ['logs:CreateLogGroup'],
+        actions: [
+          'cloudformation:ListExports',
+          'cloudfront:GetDistribution',
+          'cloudfront:CreateDistribution',
+          'cloudfront:UpdateDistribution',
+          'cloudfront:TagResource',
+          'cloudfront:CreateInvalidation',
+          'logs:CreateLogGroup',
+        ],
       }),
     )
+
+    // Allow logging for this stack
     this.addToPolicy(
       new PolicyStatement({
         resources: [
@@ -151,26 +161,6 @@ export class UsurperBuildRole extends Role {
       new PolicyStatement({
         resources: [Fn.sub('arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/CDKToolkit/*')],
         actions: ['cloudformation:DescribeStacks'],
-      }),
-    )
-    // Allow reading exports to get urls for other related services
-    this.addToPolicy(
-      new PolicyStatement({
-        resources: ['*'],
-        actions: ['cloudformation:ListExports'],
-      }),
-    )
-    // Allow creating and modifying cloudfront
-    this.addToPolicy(
-      new PolicyStatement({
-        resources: ['*'],
-        actions: [
-          'cloudfront:GetDistribution',
-          'cloudfront:CreateDistribution',
-          'cloudfront:UpdateDistribution',
-          'cloudfront:TagResource',
-          'cloudfront:CreateInvalidation',
-        ],
       }),
     )
     // Allow creating DNS records in the domain stack's zone
