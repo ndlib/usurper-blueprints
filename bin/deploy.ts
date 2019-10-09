@@ -3,6 +3,7 @@ import cdk = require('@aws-cdk/core')
 import { StackTags } from '@ndlib/ndlib-cdk'
 import { execSync } from 'child_process'
 import { UsurperPipelineStack } from '../src/usurper-pipeline-stack'
+import { UsurperPrepPipelineStack } from '../src/usurper-prep-pipeline-stack'
 import { UsurperStack } from '../src/usurper-stack'
 
 // The context values here are defaults only. Passing context in cli will override these
@@ -35,10 +36,9 @@ new UsurperStack(app, 'AppStack', {
   stage,
   hostnamePrefix: app.node.tryGetContext('hostnamePrefix') || `usurper-${stage}`,
 })
-// tslint:disable-next-line:no-unused-expression
-new UsurperPipelineStack(app, 'PipelineStack', {
+
+const pipelineProps = {
   ...sharedProps,
-  stackName: app.node.tryGetContext('pipelineStackName') || `usurper-pipeline`,
   gitOwner: app.node.tryGetContext('gitOwner'),
   gitTokenPath: app.node.tryGetContext('gitTokenPath'),
   usurperRepository: app.node.tryGetContext('usurperRepository'),
@@ -50,4 +50,14 @@ new UsurperPipelineStack(app, 'PipelineStack', {
   sentryTokenPath: app.node.tryGetContext('sentryTokenPath'),
   sentryOrg: app.node.tryGetContext('sentryOrg'),
   sentryProject: app.node.tryGetContext('sentryProject'),
+}
+// tslint:disable-next-line:no-unused-expression
+new UsurperPipelineStack(app, 'PipelineStack', {
+  ...pipelineProps,
+  stackName: app.node.tryGetContext('pipelineStackName') || `usurper-pipeline`,
+})
+// tslint:disable-next-line:no-unused-expression
+new UsurperPrepPipelineStack(app, 'PrepPipelineStack', {
+  ...pipelineProps,
+  stackName: app.node.tryGetContext('pipelineStackName') || `usurper-prep-pipeline`,
 })

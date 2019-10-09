@@ -13,6 +13,8 @@ import ArtifactBucket from './artifact-bucket'
 import UsurperBuildProject from './usurper-build-project'
 import UsurperBuildRole from './usurper-build-role'
 
+const stages = ['test', 'prod']
+
 export interface IUsurperPipelineStackProps extends cdk.StackProps {
   readonly gitOwner: string
   readonly gitTokenPath: string
@@ -42,6 +44,7 @@ export class UsurperPipelineStack extends cdk.Stack {
     })
     const codebuildRole = new UsurperBuildRole(this, 'CodeBuildTrustRole', {
       assumedBy: new ServicePrincipal('codebuild.amazonaws.com'),
+      stages,
       artifactBucket,
       createDns: props.createDns,
       domainStackName: props.domainStackName,

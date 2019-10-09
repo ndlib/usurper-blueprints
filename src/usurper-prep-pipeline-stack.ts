@@ -8,6 +8,8 @@ import UsurperBuildProject from './usurper-build-project'
 import UsurperBuildRole from './usurper-build-role'
 import { IUsurperPipelineStackProps } from './usurper-pipeline-stack'
 
+const stages = ['prep']
+
 export class UsurperPrepPipelineStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props: IUsurperPipelineStackProps) {
     super(scope, id, props)
@@ -21,6 +23,7 @@ export class UsurperPrepPipelineStack extends cdk.Stack {
     })
     const codebuildRole = new UsurperBuildRole(this, 'CodeBuildTrustRole', {
       assumedBy: new ServicePrincipal('codebuild.amazonaws.com'),
+      stages,
       artifactBucket,
       createDns: props.createDns,
       domainStackName: props.domainStackName,

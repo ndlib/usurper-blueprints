@@ -4,6 +4,7 @@ import cdk = require('@aws-cdk/core')
 import { Fn } from '@aws-cdk/core'
 
 export interface IUsurperBuildRoleProps extends RoleProps {
+  readonly stages: string[]
   readonly artifactBucket: Bucket
   readonly createDns: boolean
   readonly domainStackName: string
@@ -28,6 +29,7 @@ export class UsurperBuildRole extends Role {
         resources: [Fn.sub('arn:aws:iam::${AWS::AccountId}:role/' + serviceStackPrefix + '-*')],
         actions: [
           'iam:GetRole',
+          'iam:GetRolePolicy',
           'iam:CreateRole',
           'iam:DeleteRole',
           'iam:DeleteRolePolicy',
@@ -79,26 +81,23 @@ export class UsurperBuildRole extends Role {
       }),
     )
     // Allow creating and managing s3 bucket for site
-    this.addToPolicy(
-      new PolicyStatement({
-        resources: [
-          Fn.sub('arn:aws:s3:::' + serviceStackPrefix + '-prep-${AWS::AccountId}'),
-          Fn.sub('arn:aws:s3:::' + serviceStackPrefix + '-test-${AWS::AccountId}'),
-          Fn.sub('arn:aws:s3:::' + serviceStackPrefix + '-prod-${AWS::AccountId}'),
-        ],
-        actions: ['s3:CreateBucket', 's3:ListBucket*', 's3:GetBucket*', 's3:DeleteBucket*', 's3:PutBucket*'],
-      }),
-    )
-    this.addToPolicy(
-      new PolicyStatement({
-        resources: [
-          Fn.sub('arn:aws:s3:::' + serviceStackPrefix + '-prep-${AWS::AccountId}/*'),
-          Fn.sub('arn:aws:s3:::' + serviceStackPrefix + '-test-${AWS::AccountId}/*'),
-          Fn.sub('arn:aws:s3:::' + serviceStackPrefix + '-prod-${AWS::AccountId}/*'),
-        ],
-        actions: ['s3:GetObject*', 's3:DeleteObject*', 's3:PutObject*', 's3:Abort*', 's3:ReplicateTags'],
-      }),
-    )
+    const s3bucketStatement = new PolicyStatement({
+      resources: [], // Added later dynamically
+      actions: ['s3:CreateBucket', 's3:ListBucket*', 's3:GetBucket*', 's3:DeleteBucket*', 's3:PutBucket*'],
+    })
+    const s3objectsStatement = new PolicyStatement({
+      resources: [], // Added later dynamically
+      actions: ['s3:GetObject*', 's3:DeleteObject*', 's3:PutObject*', 's3:Abort*', 's3:ReplicateTags'],
+    })
+    props.stages.forEach(stage => {
+      s3bucketStatement.addResources(Fn.sub('arn:aws:s3:::' + serviceStackPrefix + '-' + stage + '-${AWS::AccountId}'))
+      s3objectsStatement.addResources(
+        Fn.sub('arn:aws:s3:::' + serviceStackPrefix + '-' + stage + '-${AWS::AccountId}/*'),
+      )
+    })
+    this.addToPolicy(s3bucketStatement)
+    this.addToPolicy(s3objectsStatement)
+
     // Allow adding to cloudfront logs bucket
     this.addToPolicy(
       new PolicyStatement({
@@ -179,17 +178,16 @@ export class UsurperBuildRole extends Role {
       )
     }
     // Allow getting parameters for usurper in parameter store
-    this.addToPolicy(
-      new PolicyStatement({
-        resources: [
-          Fn.sub('arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/all/usurper/prep/*'),
-          Fn.sub('arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/all/usurper/test/*'),
-          Fn.sub('arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/all/usurper/prod/*'),
-          Fn.sub('arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/all/sentry/*'),
-        ],
-        actions: ['ssm:GetParameter', 'ssm:GetParameters'],
-      }),
-    )
+    const ssmStatement = new PolicyStatement({
+      resources: [Fn.sub('arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/all/sentry/*')],
+      actions: ['ssm:GetParameter', 'ssm:GetParameters'],
+    })
+    props.stages.forEach(stage => {
+      ssmStatement.addResources(
+        Fn.sub('arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/all/usurper/' + stage + '/*'),
+      )
+    })
+    this.addToPolicy(ssmStatement)
   }
 }
 

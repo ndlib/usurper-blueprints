@@ -91,7 +91,7 @@ export class UsurperBuildProject extends codebuild.PipelineProject {
           post_build: {
             commands: [
               './scripts/codebuild/post_build.sh',
-              'if [ $CODEBUILD_BUILD_SUCCEEDING = 1 ]; then yarn sentry-cli releases deploys usurper@$VERSION new -e $STAGE; fi',
+              'if [ $CODEBUILD_BUILD_SUCCEEDING = 1 ] && [ $STAGE != "prep" ]; then yarn sentry-cli releases deploys usurper@$VERSION new -e $STAGE; fi',
               'if [ $CODEBUILD_BUILD_SUCCEEDING = 1 ] && [ $STAGE = "prod" ]; then yarn sentry-cli releases finalize usurper@$VERSION; fi',
             ],
           },
