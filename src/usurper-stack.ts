@@ -120,7 +120,6 @@ export class UsurperStack extends cdk.Stack {
 
     // Create DNS record (conditionally)
     if (props.createDns) {
-      // tslint:disable-next-line:no-unused-expression
       new CnameRecord(this, 'ServiceCNAME', {
         recordName: props.hostnamePrefix,
         domainName: cloudFront.domainName,
@@ -132,13 +131,11 @@ export class UsurperStack extends cdk.Stack {
       })
     }
 
-    // tslint:disable-next-line:no-unused-expression
     new CfnOutput(this, 'WebsiteCNAME', {
       value: cloudFront.domainName,
       description: 'Website CNAME target',
     })
 
-    // tslint:disable-next-line:no-unused-expression
     new CfnOutput(this, 'WebsiteBucketName', {
       value: bucket.bucketName,
       description: 'Name of S3 bucket to hold website content',
@@ -146,7 +143,6 @@ export class UsurperStack extends cdk.Stack {
 
     // NOTE: If you deploy directly from blueprints, it will use whatever build happens to be sitting at the build path.
     // It will NOT be rebuilt. To build and deploy, use usurper/scripts/codebuild/local.sh
-    // tslint:disable-next-line:no-unused-expression
     new BucketDeployment(this, 'DeployWebsite', {
       sources: [Source.asset(props.buildPath)],
       destinationBucket: bucket,

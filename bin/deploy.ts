@@ -28,7 +28,6 @@ const sharedProps = {
   domainStackName: app.node.tryGetContext('domainStackName') || 'libraries-domain',
 }
 
-// tslint:disable-next-line:no-unused-expression
 new UsurperStack(app, 'AppStack', {
   ...sharedProps,
   stackName: app.node.tryGetContext('serviceStackName') || `usurper-${stage}`,
@@ -51,12 +50,10 @@ const pipelineProps = {
   sentryOrg: app.node.tryGetContext('sentryOrg'),
   sentryProject: app.node.tryGetContext('sentryProject'),
 }
-// tslint:disable-next-line:no-unused-expression
 new UsurperPipelineStack(app, 'PipelineStack', {
   ...pipelineProps,
   stackName: app.node.tryGetContext('pipelineStackName') || `usurper-pipeline`,
 })
-// tslint:disable-next-line:no-unused-expression
 new UsurperPrepPipelineStack(app, 'PrepPipelineStack', {
   ...pipelineProps,
   stackName: app.node.tryGetContext('pipelineStackName') || `usurper-prep-pipeline`,
