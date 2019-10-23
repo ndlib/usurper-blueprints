@@ -1,6 +1,7 @@
 import codebuild = require('@aws-cdk/aws-codebuild')
 import { Role } from '@aws-cdk/aws-iam'
 import cdk = require('@aws-cdk/core')
+import { ICfnConditionExpression } from '@aws-cdk/core'
 
 export interface IUsurperBuildProjectProps extends codebuild.PipelineProjectProps {
   readonly stage: string
@@ -12,6 +13,7 @@ export interface IUsurperBuildProjectProps extends codebuild.PipelineProjectProp
   readonly sentryProject: string
   readonly createDns: boolean
   readonly domainStackName: string
+  readonly fakeServiceUrls?: ICfnConditionExpression
 }
 
 export class UsurperBuildProject extends codebuild.PipelineProject {
@@ -63,6 +65,10 @@ export class UsurperBuildProject extends codebuild.PipelineProject {
           },
           HOSTNAME_PREFIX: {
             value: scope.node.tryGetContext('hostnamePrefix') || serviceStackName,
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+          },
+          FAKE_SERVICE_URLS: {
+            value: (props.fakeServiceUrls || false).toString(),
             type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
           },
         },
