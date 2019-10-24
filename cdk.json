@@ -12,6 +12,8 @@
     "domainStackName": "libraries-domain",
     "sentryTokenPath": "/all/sentry/ci-token",
     "sentryOrg": "university-of-notre-dame-ts",
-    "sentryProject": "usurper"
+    "sentryProject": "usurper",
+    "libndAccount": "230391840102",
+    "testlibndAccount": "333680067100"
   }
 }

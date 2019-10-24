@@ -8,7 +8,7 @@ import {
 import { Role, ServicePrincipal } from '@aws-cdk/aws-iam'
 import sns = require('@aws-cdk/aws-sns')
 import cdk = require('@aws-cdk/core')
-import { SecretValue } from '@aws-cdk/core'
+import { CfnCondition, Fn, SecretValue } from '@aws-cdk/core'
 import ArtifactBucket from './artifact-bucket'
 import UsurperBuildProject from './usurper-build-project'
 import UsurperBuildRole from './usurper-build-role'
@@ -99,10 +99,15 @@ export class UsurperPipelineStack extends cdk.Stack {
     ])
 
     // DEPLOY TO TEST
+    new CfnCondition(this, 'IsTestlib', {
+      expression: Fn.conditionEquals(this.account, this.node.tryGetContext('testlibndAccount')),
+    })
     const deployToTestProject = new UsurperBuildProject(this, 'UsurperTestBuildProject', {
       ...props,
       stage: 'test',
       role: codebuildRole,
+      // "Test" stage needs to be able to build in testlibnd even without the existence of stacks for usurper's services
+      fakeServiceUrls: Fn.conditionIf('IsTestlib', 'true', 'false'),
     })
     const deployToTestAction = new CodeBuildAction({
       actionName: 'Build_and_Deploy',
