@@ -13,6 +13,7 @@ export interface IUsurperBuildProjectProps extends codebuild.PipelineProjectProp
   readonly sentryProject: string
   readonly createDns: boolean
   readonly domainStackName: string
+  readonly hostnamePrefix: string
   readonly fakeServiceUrls?: ICfnConditionExpression
 }
 
@@ -64,7 +65,7 @@ export class UsurperBuildProject extends codebuild.PipelineProject {
             type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
           },
           HOSTNAME_PREFIX: {
-            value: scope.node.tryGetContext('hostnamePrefix') || serviceStackName,
+            value: props.hostnamePrefix,
             type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
           },
           FAKE_SERVICE_URLS: {

@@ -10,6 +10,7 @@ import sns = require('@aws-cdk/aws-sns')
 import cdk = require('@aws-cdk/core')
 import { CfnCondition, Fn, SecretValue } from '@aws-cdk/core'
 import ArtifactBucket from './artifact-bucket'
+import QaProject from './qa-project'
 import UsurperBuildProject from './usurper-build-project'
 import UsurperBuildRole from './usurper-build-role'
 
@@ -29,6 +30,7 @@ export interface IUsurperPipelineStackProps extends cdk.StackProps {
   readonly sentryProject: string
   readonly createDns: boolean
   readonly domainStackName: string
+  readonly hostnamePrefix: string
 }
 
 export class UsurperPipelineStack extends cdk.Stack {
@@ -117,6 +119,18 @@ export class UsurperPipelineStack extends cdk.Stack {
       runOrder: 1,
     })
 
+    // QA
+    const automatedTestQAProject = new QaProject(this, 'AutomatedQaProject', {
+      role: codebuildRole,
+      testUrl: `${props.hostnamePrefix}-test.` + Fn.importValue(`${props.domainStackName}:DomainName`),
+    })
+    const automatedQaAction = new CodeBuildAction({
+      actionName: 'Automated_QA',
+      project: automatedTestQAProject,
+      input: appSourceArtifact,
+      runOrder: 2,
+    })
+
     // APPROVAL
     const approvalTopic = new sns.Topic(this, 'PipelineApprovalTopic', {
       displayName: 'PipelineApprovalTopic',
@@ -125,13 +139,13 @@ export class UsurperPipelineStack extends cdk.Stack {
       actionName: 'ManualApprovalOfTestEnvironment',
       notificationTopic: approvalTopic,
       additionalInformation: 'Approve or Reject this change after testing',
-      runOrder: 2,
+      runOrder: 3,
     })
 
     // TEST STAGE
     pipeline.addStage({
       stageName: 'DeployToTest',
-      actions: [deployToTestAction, manualApprovalAction],
+      actions: [deployToTestAction, automatedQaAction, manualApprovalAction],
     })
 
     // DEPLOY TO PROD
