@@ -2,6 +2,7 @@ import {
   CloudFrontAllowedMethods,
   CloudFrontWebDistribution,
   HttpVersion,
+  OriginAccessIdentity,
   PriceClass,
   SecurityPolicyProtocol,
   SSLMethod,
@@ -79,7 +80,11 @@ export class UsurperStack extends cdk.Stack {
           ],
           s3OriginSource: {
             s3BucketSource: bucket,
-            originAccessIdentityId: Fn.importValue('wse-web-origin-access-identity'),
+            originAccessIdentity: OriginAccessIdentity.fromOriginAccessIdentityName(
+              this,
+              'OriginAccessIdentity',
+              Fn.importValue('wse-web-origin-access-identity'),
+            ),
           },
         },
       ],
