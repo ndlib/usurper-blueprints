@@ -26,6 +26,7 @@ const stage = app.node.tryGetContext('stage') || 'dev'
 const sharedProps = {
   createDns: app.node.tryGetContext('createDns') === undefined ? true : app.node.tryGetContext('createDns') === 'true',
   domainStackName: app.node.tryGetContext('domainStackName') || 'libraries-domain',
+  hostnamePrefix: app.node.tryGetContext('hostnamePrefix') || `usurper`,
 }
 
 new UsurperStack(app, 'AppStack', {
@@ -33,7 +34,6 @@ new UsurperStack(app, 'AppStack', {
   stackName: app.node.tryGetContext('serviceStackName') || `usurper-${stage}`,
   buildPath: app.node.tryGetContext('usurperBuildPath') || '../usurper/build',
   stage,
-  hostnamePrefix: app.node.tryGetContext('hostnamePrefix') || `usurper-${stage}`,
 })
 
 const pipelineProps = {

@@ -2,6 +2,7 @@ import {
   CloudFrontAllowedMethods,
   CloudFrontWebDistribution,
   HttpVersion,
+  OriginAccessIdentity,
   PriceClass,
   SecurityPolicyProtocol,
   SSLMethod,
@@ -27,7 +28,7 @@ export class UsurperStack extends cdk.Stack {
     super(scope, id, props)
 
     const domainNameImport = Fn.importValue(`${props.domainStackName}:DomainName`)
-    const fqdn = `${props.hostnamePrefix}.${domainNameImport}`
+    const fqdn = `${props.hostnamePrefix}-${props.stage}.${domainNameImport}`
 
     // Set up s3 bucket for storing the packaged site
     const bucket = new Bucket(this, 'UsurperBucket', {
@@ -79,7 +80,11 @@ export class UsurperStack extends cdk.Stack {
           ],
           s3OriginSource: {
             s3BucketSource: bucket,
-            originAccessIdentityId: Fn.importValue('wse-web-origin-access-identity'),
+            originAccessIdentity: OriginAccessIdentity.fromOriginAccessIdentityName(
+              this,
+              'OriginAccessIdentity',
+              Fn.importValue('wse-web-origin-access-identity'),
+            ),
           },
         },
       ],
@@ -118,7 +123,7 @@ export class UsurperStack extends cdk.Stack {
     // Create DNS record (conditionally)
     if (props.createDns) {
       new CnameRecord(this, 'ServiceCNAME', {
-        recordName: props.hostnamePrefix,
+        recordName: `${props.hostnamePrefix}-${props.stage}`,
         domainName: cloudFront.domainName,
         zone: HostedZone.fromHostedZoneAttributes(this, 'ImportedHostedZone', {
           hostedZoneId: Fn.importValue(`${props.domainStackName}:Zone`),
