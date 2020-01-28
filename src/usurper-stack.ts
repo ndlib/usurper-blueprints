@@ -93,7 +93,7 @@ export class UsurperStack extends cdk.Stack {
       comment: fqdn,
       aliasConfiguration: {
         acmCertRef: Fn.importValue(`${props.domainStackName}:ACMCertificateARN`),
-        names: [fqdn],
+        names: [fqdn, `${props.stage}.${domainNameImport}`],
         securityPolicy: SecurityPolicyProtocol.TLS_V1_1_2016,
         sslMethod: SSLMethod.SNI,
       },

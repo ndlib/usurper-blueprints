@@ -24,8 +24,8 @@ app.node.applyAspect(new StackTags())
 
 const stage = app.node.tryGetContext('stage') || 'dev'
 const sharedProps = {
-  createDns: app.node.tryGetContext('createDns') === undefined ? true : app.node.tryGetContext('createDns') === 'true',
-  domainStackName: app.node.tryGetContext('domainStackName') || 'libraries-domain',
+  createDns: app.node.tryGetContext('createDns') === undefined ? false : app.node.tryGetContext('createDns') === 'true',
+  domainStackName: app.node.tryGetContext('domainStackName'),
   hostnamePrefix: app.node.tryGetContext('hostnamePrefix') || `usurper`,
 }
 
