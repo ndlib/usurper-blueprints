@@ -49,6 +49,7 @@ const pipelineProps = {
   sentryTokenPath: app.node.tryGetContext('sentryTokenPath'),
   sentryOrg: app.node.tryGetContext('sentryOrg'),
   sentryProject: app.node.tryGetContext('sentryProject'),
+  emailReceivers: app.node.tryGetContext('emailReceivers'),
 }
 new UsurperPipelineStack(app, 'PipelineStack', {
   ...pipelineProps,

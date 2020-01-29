@@ -14,6 +14,7 @@
     "sentryOrg": "university-of-notre-dame-ts",
     "sentryProject": "usurper",
     "libndAccount": "230391840102",
-    "testlibndAccount": "333680067100"
+    "testlibndAccount": "333680067100",
+    "emailReceivers": "wse-notifications-group@nd.edu"
   }
 }
