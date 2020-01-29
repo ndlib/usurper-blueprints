@@ -2,6 +2,7 @@
 import cdk = require('@aws-cdk/core')
 import { StackTags } from '@ndlib/ndlib-cdk'
 import { execSync } from 'child_process'
+import fs = require('fs')
 import { UsurperPipelineStack } from '../src/usurper-pipeline-stack'
 import { UsurperPrepPipelineStack } from '../src/usurper-prep-pipeline-stack'
 import { UsurperStack } from '../src/usurper-stack'
@@ -29,12 +30,18 @@ const sharedProps = {
   hostnamePrefix: app.node.tryGetContext('hostnamePrefix') || `usurper`,
 }
 
-new UsurperStack(app, 'AppStack', {
-  ...sharedProps,
-  stackName: app.node.tryGetContext('serviceStackName') || `usurper-${stage}`,
-  buildPath: app.node.tryGetContext('usurperBuildPath') || '../usurper/build',
-  stage,
-})
+let buildPath = app.node.tryGetContext('usurperBuildPath')
+if (!buildPath && fs.existsSync('../usurper/build')) {
+  buildPath = '../usurper/build'
+}
+if (buildPath) {
+  new UsurperStack(app, 'AppStack', {
+    ...sharedProps,
+    stackName: app.node.tryGetContext('serviceStackName') || `usurper-${stage}`,
+    buildPath,
+    stage,
+  })
+}
 
 const pipelineProps = {
   ...sharedProps,
@@ -49,6 +56,7 @@ const pipelineProps = {
   sentryTokenPath: app.node.tryGetContext('sentryTokenPath'),
   sentryOrg: app.node.tryGetContext('sentryOrg'),
   sentryProject: app.node.tryGetContext('sentryProject'),
+  emailReceivers: app.node.tryGetContext('emailReceivers'),
 }
 new UsurperPipelineStack(app, 'PipelineStack', {
   ...pipelineProps,

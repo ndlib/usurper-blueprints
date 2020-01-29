@@ -9,6 +9,7 @@ import { Role, ServicePrincipal } from '@aws-cdk/aws-iam'
 import sns = require('@aws-cdk/aws-sns')
 import cdk = require('@aws-cdk/core')
 import { CfnCondition, Fn, SecretValue } from '@aws-cdk/core'
+import { PipelineNotifications } from '@ndlib/ndlib-cdk'
 import ArtifactBucket from './artifact-bucket'
 import QaProject from './qa-project'
 import UsurperBuildProject from './usurper-build-project'
@@ -31,6 +32,7 @@ export interface IUsurperPipelineStackProps extends cdk.StackProps {
   readonly createDns: boolean
   readonly domainStackName: string
   readonly hostnamePrefix: string
+  readonly emailReceivers: string
 }
 
 export class UsurperPipelineStack extends cdk.Stack {
@@ -56,6 +58,10 @@ export class UsurperPipelineStack extends cdk.Stack {
     const pipeline = new codepipeline.Pipeline(this, 'UsurperPipeline', {
       artifactBucket,
       role: codepipelineRole,
+    })
+    new PipelineNotifications(this, 'PipelineNotifications', {
+      pipeline,
+      receivers: props.emailReceivers,
     })
 
     // SOURCE CODE AND BLUEPRINTS
@@ -122,7 +128,9 @@ export class UsurperPipelineStack extends cdk.Stack {
     // QA
     const automatedTestQAProject = new QaProject(this, 'AutomatedQaProject', {
       role: codebuildRole,
-      testUrl: `${props.hostnamePrefix}-test.` + Fn.importValue(`${props.domainStackName}:DomainName`),
+      testUrl:
+        (props.createDns ? `${props.hostnamePrefix}-test.` : 'test.') +
+        Fn.importValue(`${props.domainStackName}:DomainName`),
     })
     const automatedQaAction = new CodeBuildAction({
       actionName: 'Automated_QA',
