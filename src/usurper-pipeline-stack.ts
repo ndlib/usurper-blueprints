@@ -128,7 +128,9 @@ export class UsurperPipelineStack extends cdk.Stack {
     // QA
     const automatedTestQAProject = new QaProject(this, 'AutomatedQaProject', {
       role: codebuildRole,
-      testUrl: `test.` + Fn.importValue(`${props.domainStackName}:DomainName`),
+      testUrl:
+        (props.createDns ? `${props.hostnamePrefix}-test.` : 'test.') +
+        Fn.importValue(`${props.domainStackName}:DomainName`),
     })
     const automatedQaAction = new CodeBuildAction({
       actionName: 'Automated_QA',
