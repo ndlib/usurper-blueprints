@@ -33,11 +33,14 @@ export interface IUsurperPipelineStackProps extends cdk.StackProps {
   readonly domainStackName: string
   readonly hostnamePrefix: string
   readonly emailReceivers: string
+  readonly websiteTestServerStack?: string
 }
 
 export class UsurperPipelineStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props: IUsurperPipelineStackProps) {
     super(scope, id, props)
+
+    const ec2Id = props.websiteTestServerStack ? cdk.Fn.importValue(`${props.websiteTestServerStack}:InstanceId`) : undefined
 
     // S3 BUCKET FOR STORING ARTIFACTS
     const artifactBucket = new ArtifactBucket(this, 'ArtifactBucket', {})
@@ -52,6 +55,7 @@ export class UsurperPipelineStack extends cdk.Stack {
       artifactBucket,
       createDns: props.createDns,
       domainStackName: props.domainStackName,
+      ec2Id,
     })
 
     // CREATE PIPELINE
@@ -131,6 +135,7 @@ export class UsurperPipelineStack extends cdk.Stack {
       testUrl:
         (props.createDns ? `${props.hostnamePrefix}-test.` : 'test.') +
         Fn.importValue(`${props.domainStackName}:DomainName`),
+      ec2Id,
     })
     const automatedQaAction = new CodeBuildAction({
       actionName: 'Automated_QA',
