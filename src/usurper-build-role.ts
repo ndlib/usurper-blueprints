@@ -8,6 +8,7 @@ export interface IUsurperBuildRoleProps extends RoleProps {
   readonly artifactBucket: Bucket
   readonly createDns: boolean
   readonly domainStackName: string
+  readonly ec2Id?: string
 }
 
 export class UsurperBuildRole extends Role {
@@ -188,6 +189,18 @@ export class UsurperBuildRole extends Role {
       )
     })
     this.addToPolicy(ssmStatement)
+
+    // Allow pipeline to start EC2 instances in case it is not running when QA action runs
+    if (props.ec2Id) {
+      this.addToPolicy(
+        new PolicyStatement({
+          resources: [
+            Fn.sub('arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:instance/${ec2Id}', { ec2Id: props.ec2Id }),
+          ],
+          actions: ['ec2:StartInstances'],
+        }),
+      )
+    }
   }
 }
 

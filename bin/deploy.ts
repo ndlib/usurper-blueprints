@@ -61,8 +61,10 @@ const pipelineProps = {
 new UsurperPipelineStack(app, 'PipelineStack', {
   ...pipelineProps,
   stackName: app.node.tryGetContext('pipelineStackName') || `usurper-pipeline`,
+  websiteTestServerStack: app.node.tryGetContext('websiteTestServerStack'),
 })
 new UsurperPrepPipelineStack(app, 'PrepPipelineStack', {
   ...pipelineProps,
   stackName: app.node.tryGetContext('pipelineStackName') || `usurper-prep-pipeline`,
+  websiteTestServerStack: app.node.tryGetContext('websiteTestServerStack'),
 })
