@@ -28,7 +28,7 @@ export class UsurperStack extends cdk.Stack {
     super(scope, id, props)
 
     const domainNameImport = Fn.importValue(`${props.domainStackName}:DomainName`)
-    const fqdn = `${props.hostnamePrefix}-${props.stage}.${domainNameImport}`
+    const fqdn = `${props.hostnamePrefix}-testlibnd-${props.stage}.${domainNameImport}`
 
     // Set up s3 bucket for storing the packaged site
     const bucket = new Bucket(this, 'UsurperBucket', {
@@ -93,7 +93,7 @@ export class UsurperStack extends cdk.Stack {
       comment: fqdn,
       aliasConfiguration: {
         acmCertRef: Fn.importValue(`${props.domainStackName}:ACMCertificateARN`),
-        names: [fqdn, `${props.stage}.${domainNameImport}`],
+        names: [fqdn],
         securityPolicy: SecurityPolicyProtocol.TLS_V1_1_2016,
         sslMethod: SSLMethod.SNI,
       },
