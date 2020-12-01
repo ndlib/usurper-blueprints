@@ -22,7 +22,7 @@ export class UsurperBuildProject extends codebuild.PipelineProject {
     const serviceStackName = `${scope.node.tryGetContext('serviceStackName') || 'usurper'}-${props.stage}`
     const pipelineProps = {
       environment: {
-        buildImage: codebuild.LinuxBuildImage.STANDARD_2_0,
+        buildImage: codebuild.LinuxBuildImage.STANDARD_4_0,
         environmentVariables: {
           STACK_NAME: {
             value: serviceStackName,
@@ -80,7 +80,7 @@ export class UsurperBuildProject extends codebuild.PipelineProject {
         phases: {
           install: {
             'runtime-versions': {
-              nodejs: 10,
+              nodejs: '12.x',
             },
             commands: [
               'echo "Ensure that the codebuild directory is executable"',

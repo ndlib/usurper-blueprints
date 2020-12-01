@@ -86,7 +86,7 @@ export class UsurperBuildRole extends Role {
     this.addToPolicy(
       new PolicyStatement({
         resources: [props.artifactBucket.bucketArn, 'arn:aws:s3:::cdktoolkit-stagingbucket-*'],
-        actions: ['s3:ListBucket'],
+        actions: ['s3:ListBucket', 's3:ListBucketVersions', 's3:GetBucketLocation', 's3:GetBucketPolicy'],
       }),
     )
     this.addToPolicy(
