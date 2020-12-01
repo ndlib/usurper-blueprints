@@ -13,7 +13,7 @@ export class QaProject extends codebuild.PipelineProject {
   constructor(scope: cdk.Construct, id: string, props: IQaProjectProps) {
     const pipelineProps = {
       environment: {
-        buildImage: codebuild.LinuxBuildImage.AMAZON_LINUX_2,
+        buildImage: codebuild.LinuxBuildImage.STANDARD_4_0,
       },
       environmentVariables: {
         CI: { value: 'true', type: BuildEnvironmentVariableType.PLAINTEXT },

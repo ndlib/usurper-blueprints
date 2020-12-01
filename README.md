@@ -19,6 +19,11 @@ Assume role (or use aws-vault) and run:
 ```
 cdk deploy usurper-pipeline -c owner=<netid> -c contact=<email>
 ```
+For testlibnd deployment, an additional context override is needed.
+```
+-c websiteTestServerStack=''
+```
+This refers to the EC2 which serves as a proxy for hosting the website. This doesn't exist in testlibnd, so supplying a falsy value will allow us to skip the step of starting the ec2 when running smoke tests.
 
 # Useful commands
 
