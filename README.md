@@ -17,7 +17,7 @@ Infrastructure-as-code for the [Hesburgh Libraries website](https://library.nd.e
 ## Deployment
 Assume role (or use aws-vault) and run:
 ```
-cdk deploy usurper-pipeline -c owner=<netid> -c contact=<email>
+cdk deploy usurper-pipeline -c owner=<netid> -c contact=<email> -c slackNotifyStackName=<stack-name>
 ```
 For testlibnd deployment, additional context overrides are needed for the pipeline.
 ```
