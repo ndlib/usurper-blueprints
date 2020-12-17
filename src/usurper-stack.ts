@@ -77,6 +77,12 @@ export class UsurperStack extends cdk.Stack {
               allowedMethods: CloudFrontAllowedMethods.GET_HEAD_OPTIONS,
               compress: true,
             },
+            {
+              pathPattern: 'service-worker.js',
+              minTtl: Duration.seconds(0),
+              maxTtl: Duration.seconds(0),
+              defaultTtl: Duration.seconds(0),
+            },
           ],
           s3OriginSource: {
             s3BucketSource: bucket,
